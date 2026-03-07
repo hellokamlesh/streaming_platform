@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Maintenance - TorStream{% endblock %}
+
+{% block content %}
+<div class="text-center" style="padding: 4rem 0;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">⚠️</h1>
+    <h2 style="margin: 1rem 0;">Temporarily Unavailable</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+        {{ message or "This feature is currently unavailable. Please check back later." }}
+    </p>
+    <a href="/home" class="btn btn-primary">Go Home</a>
+</div>
+{% endblock %}

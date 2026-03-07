@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - TorStream{% endblock %}
+
+{% block content %}
+<h1>Welcome, {{ user.username }}</h1>
+
+<div class="stats-grid" style="margin-top: 1.5rem;">
+    <div class="stat-card">
+        <div class="stat-value">{{ purchases|length }}</div>
+        <div class="stat-label">Purchases</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">
+            {% if is_premium_active %}✓{% else %}—{% endif %}
+        </div>
+        <div class="stat-label">
+            {% if is_premium_active %}
+                Premium Active
+            {% else %}
+                Free Account
+            {% endif %}
+        </div>
+    </div>
+    {% if subscription and subscription.is_valid %}
+    <div class="stat-card">
+        <div class="stat-value">{{ subscription.expires_at.strftime('%b %d') }}</div>
+        <div class="stat-label">Expires</div>
+    </div>
+    {% endif %}
+</div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Purchases</h3>
+        </div>
+        {% if purchases %}
+            <ul style="list-style: none;">
+                {% for purchase in purchases %}
+                <li style="padding: 0.75rem 0; border-bottom: 1px solid var(--border);">
+                    <a href="/video/{{ purchase.video_id }}">
+                        {{ purchase.video.title }}
+                    </a>
+                    <span style="float: right; color: var(--text-secondary);">
+                        ${{ purchase.price_paid }}
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+            <a href="/user/purchases" class="btn" style="margin-top: 1rem;">
+                View All Purchases
+            </a>
+        {% else %}
+            <p style="color: var(--text-secondary);">No purchases yet.</p>
+            <a href="/browse" class="btn btn-primary" style="margin-top: 1rem;">
+                Browse Videos
+            </a>
+        {% endif %}
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Account</h3>
+        </div>
+        <ul style="list-style: none;">
+            <li style="padding: 0.5rem 0;">
+                <a href="/user/subscription">Subscription</a>
+            </li>
+            <li style="padding: 0.5rem 0;">
+                <a href="/user/invoices">Invoices</a>
+            </li>
+            <li style="padding: 0.5rem 0;">
+                <a href="/user/settings">Settings</a>
+            </li>
+        </ul>
+        
+        {% if not is_premium_active %}
+            <a href="/pricing" class="btn btn-primary" style="margin-top: 1rem;">
+                Upgrade to Premium
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

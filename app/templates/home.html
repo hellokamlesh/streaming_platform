@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}HotStream - Secure Video Streaming{% endblock %}
+
+{% block content %}
+<div class="text-center" style="padding: 4rem 0;">
+    <h1 style="font-size: 3rem; margin-bottom: 1rem;">HotStream</h1>
+    <p style="font-size: 1.2rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 2rem;">
+        Secure, private video streaming platform optimized for Tor.
+        No tracking. No analytics. Just content.
+    </p>
+    <div class="flex gap-2" style="justify-content: center;">
+        <a href="/browse" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 1.5rem;">
+            Browse Videos
+        </a>
+        <a href="/pricing" class="btn" style="font-size: 1.1rem; padding: 0.8rem 1.5rem;">
+            View Pricing
+        </a>
+    </div>
+</div>
+
+<!-- Responsive Feature Cards - 3 columns on desktop, 2 on tablet, 1 on mobile -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem;">
+    
+    <!-- Private Card -->
+    <div class="card text-center" style="padding: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+        <h3 style="margin-bottom: 1rem;">Private</h3>
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            No email required.<br>
+            Username-only registration.<br>
+            Minimal data collection.
+        </p>
+    </div>
+    
+    <!-- Secure Card -->
+    <div class="card text-center" style="padding: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
+        <h3 style="margin-bottom: 1rem;">Secure</h3>
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            Argon2 password hashing.<br>
+            HTTP-only cookies.<br>
+            CSRF protection.<br>
+            Rate limiting.
+        </p>
+    </div>
+    
+    <!-- Anonymous Payments Card -->
+    <div class="card text-center" style="padding: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 1rem;">💰</div>
+        <h3 style="margin-bottom: 1rem;">Anonymous Payments</h3>
+        <p style="color: var(--text-secondary); line-height: 1.6;">
+            Bitcoin payments via BTCPay.<br>
+            No KYC. No tracking.
+        </p>
+    </div>
+    
+</div>
+
+<div class="card" style="margin-top: 3rem;">
+    <h2 class="text-center mb-2">Access Types</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; padding: 1rem;">
+        <div class="text-center">
+            <span class="badge badge-free" style="font-size: 1.2rem; padding: 0.5rem 1.5rem;">FREE</span>
+            <p style="margin-top: 0.5rem; color: var(--text-secondary);">
+                Watch selected content without registration
+            </p>
+        </div>
+        <div class="text-center">
+            <span class="badge badge-ppv" style="font-size: 1.2rem; padding: 0.5rem 1.5rem;">PPV</span>
+            <p style="margin-top: 0.5rem; color: var(--text-secondary);">
+                Pay-per-view for premium content
+            </p>
+        </div>
+        <div class="text-center">
+            <span class="badge badge-premium" style="font-size: 1.2rem; padding: 0.5rem 1.5rem;">PREMIUM</span>
+            <p style="margin-top: 0.5rem; color: var(--text-secondary);">
+                Unlimited access with subscription
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Ensure cards have consistent height */
+.card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Make sure text is properly aligned */
+.text-center {
+    text-align: center;
+}
+
+/* Responsive spacing */
+@media (max-width: 768px) {
+    .text-center h1 {
+        font-size: 2.5rem;
+    }
+    .text-center p {
+        font-size: 1rem;
+        padding: 0 1rem;
+    }
+}
+</style>
+{% endblock %}

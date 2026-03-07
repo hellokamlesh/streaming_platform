@@ -1,0 +1,71 @@
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Backups
+backups/
+
+# Tests
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads (local development)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+app/static/previews/*
+!app/static/previews/.gitkeep
+
+# Docker volumes
+postgres_data/
+redis_data/
+video_storage/
+preview_storage/
+tor_data/
+
+# Misc
+.DS_Store
+Thumbs.db

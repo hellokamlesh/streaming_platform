@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Video Locked - HotStream{% endblock %}
+
+{% block content %}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <div style="font-size: 4rem; margin-bottom: 1rem;">🔒</div>
+    
+    <h1 style="margin-bottom: 1rem;">Video Locked</h1>
+    
+    <p style="color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 2rem;">
+        {{ reason }}
+    </p>
+    
+    {% if not user %}
+        <!-- User not logged in -->
+        <p style="margin-bottom: 1.5rem;">Please login or register to watch videos.</p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="/auth/login" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+                🔑 Login
+            </a>
+            <a href="/auth/register" class="btn btn-success" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+                📝 Register
+            </a>
+        </div>
+    {% elif video.access_type.value == 'premium' %}
+        <!-- Logged in but not premium -->
+        <p style="margin-bottom: 2rem;">Subscribe to premium to watch this and all other premium videos.</p>
+        <a href="/payment/subscribe" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+            🚀 Subscribe Now
+        </a>
+    {% elif video.access_type.value == 'ppv' %}
+        <!-- Logged in but PPV not purchased -->
+        <p style="margin-bottom: 1rem;">This is a pay-per-view video.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+            Purchase price: <strong style="font-size: 1.3rem; color: var(--text-primary);">${{ video.ppv_price }}</strong>
+        </p>
+        <a href="/payment/buy/{{ video.id }}" class="btn btn-primary" style="font-size: 1.1rem; padding: 0.8rem 2rem;">
+            💳 Purchase Video
+        </a>
+    {% else %}
+        <!-- Generic case -->
+        <p style="margin-bottom: 2rem;">You don't have access to this video.</p>
+    {% endif %}
+    
+    <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--bg-secondary);">
+        <a href="/browse" class="btn" style="margin-right: 1rem;">Browse Other Videos</a>
+        <a href="/" class="btn">Home</a>
+    </div>
+</div>
+{% endblock %}

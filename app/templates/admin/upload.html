@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Video - TorStream{% endblock %}
+
+{% block content %}
+<h1>Upload Video</h1>
+
+<div style="max-width: 600px; margin: 1.5rem auto;">
+    <div class="card">
+        <form method="post" action="/video/upload" enctype="multipart/form-data">
+            <!-- EXISTING FIELDS (UNCHANGED) -->
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" class="form-control" 
+                       required maxlength="255" placeholder="Video title">
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" class="form-control" 
+                          rows="3" placeholder="Video description (optional)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="access_type">Access Type</label>
+                <select id="access_type" name="access_type" class="form-control">
+                    <option value="free">Free</option>
+                    <option value="premium">Premium</option>
+                    <option value="ppv">Pay-Per-View</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="ppv_price_group" style="display: none;">
+                <label for="ppv_price">PPV Price (USD)</label>
+                <input type="number" id="ppv_price" name="ppv_price" class="form-control"
+                       step="0.01" min="0.99" placeholder="4.99">
+            </div>
+            
+            <div class="form-group">
+                <label for="video_file">Video File</label>
+                <input type="file" id="video_file" name="video_file" class="form-control"
+                       accept="video/mp4,video/webm,video/ogg">
+                <small style="color: var(--text-secondary);" id="video_file_hint">
+                    Supported formats: MP4, WebM, OGG. Max size: 5GB. Not required for placeholders.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="thumbnail_file">Thumbnail (Optional)</label>
+                <input type="file" id="thumbnail_file" name="thumbnail_file" class="form-control"
+                       accept="image/jpeg,image/png,image/jpg">
+                <small style="color: var(--text-secondary);">
+                    Supported formats: JPG, PNG. If not provided, auto-generated from video.
+                </small>
+            </div>
+            
+            <!-- ========== PLACEHOLDER SETTINGS (ADDITIVE) ========== -->
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                <h3 style="margin-bottom: 1rem; color: #ff9800;">Placeholder Settings (Optional)</h3>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="isPlaceholder" name="is_placeholder" value="true">
+                        This is a placeholder / coming soon video
+                    </label>
+                    <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                        Check this if you want to create a fake video (no actual video file needed)
+                    </small>
+                </div>
+                
+                <div id="placeholderFields" style="display: none;">
+                    <div class="form-group">
+                        <label for="placeholderMessage">Placeholder Message</label>
+                        <input type="text" id="placeholderMessage" name="placeholder_message" class="form-control"
+                               value="Coming Soon" maxlength="255" placeholder="Coming Soon">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fakeDuration">Fake Duration (seconds, optional)</label>
+                        <input type="number" id="fakeDuration" name="fake_duration_seconds" class="form-control"
+                               min="0" placeholder="e.g., 480 for 8 minutes">
+                        <small style="color: var(--text-secondary); display: block; margin-top: 0.25rem;">
+                            If set, displays this duration on video card (e.g., 8:12 min). Leave empty for "Coming Soon".
+                        </small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="placeholderImage">Custom Placeholder Image (Optional)</label>
+                        <input type="file" id="placeholderImage" name="placeholder_image" class="form-control"
+                               accept="image/jpeg,image/png,image/jpg">
+                        <small style="color: var(--text-secondary);">
+                            JPG or PNG. Displayed instead of gradient background for placeholder videos.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== BLUR SETTINGS (ADDITIVE) ========== -->
+            <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #ddd;">
+                <h3 style="margin-bottom: 1rem; color: #2196F3;">Blur Settings (Optional)</h3>
+                
+                <div class="form-group">
+                    <label for="blurLevel">Blur Thumbnail</label>
+                    <select id="blurLevel" name="blur_level" class="form-control">
+                        <option value="none">None (No Blur)</option>
+                        <option value="light">Light (30% Blur)</option>
+                        <option value="heavy">Heavy (60% Blur)</option>
+                        <option value="full">Full (100% Obscured)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="blurUntilDate">Auto-Unblur Date (Optional)</label>
+                    <input type="datetime-local" id="blurUntilDate" name="blur_until_date" class="form-control">
+                    <small style="color: var(--text-secondary);">
+                        Leave empty for permanent blur. If set, blur automatically removes on this date.
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customBlurImage">Custom Blur Image (Optional)</label>
+                    <input type="file" id="customBlurImage" name="custom_blur_image" class="form-control"
+                           accept="image/jpeg,image/png,image/jpg">
+                    <small style="color: var(--text-secondary);">
+                        JPG or PNG. Displayed instead of blurred thumbnail if provided.
+                    </small>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 2rem;">
+                Upload Video
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Toggle PPV price field
+    document.getElementById('access_type').addEventListener('change', function() {
+        const ppvGroup = document.getElementById('ppv_price_group');
+        const ppvInput = document.getElementById('ppv_price');
+        if (this.value === 'ppv') {
+            ppvGroup.style.display = 'block';
+            ppvInput.required = true;
+        } else {
+            ppvGroup.style.display = 'none';
+            ppvInput.required = false;
+        }
+    });
+    
+    // Toggle placeholder fields
+    document.getElementById('isPlaceholder').addEventListener('change', function() {
+        const placeholderFields = document.getElementById('placeholderFields');
+        const videoFileInput = document.getElementById('video_file');
+        const videoFileHint = document.getElementById('video_file_hint');
+        
+        if (this.checked) {
+            placeholderFields.style.display = 'block';
+            videoFileInput.required = false;
+            videoFileHint.innerHTML = 'Not required for placeholders.';
+        } else {
+            placeholderFields.style.display = 'none';
+            videoFileInput.required = true;
+            videoFileHint.innerHTML = 'Supported formats: MP4, WebM, OGG. Max size: 5GB. Not required for placeholders.';
+        }
+    });
+</script>
+{% endblock %}

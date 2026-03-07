@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Videos - TorStream{% endblock %}
+
+{% block content %}
+<h1>Browse Videos</h1>
+
+<div class="grid" style="margin-top: 1.5rem;">
+    {% for video in videos %}
+    <a href="/video/{{ video.id }}" class="video-card" style="text-decoration: none; position: relative;">
+        <div class="video-thumbnail" style="position: relative;">
+            {% if video.is_placeholder %}
+                <!-- PLACEHOLDER: Show custom image or default gradient (NO LOCK ICON) -->
+                {% if video.placeholder_image %}
+                    <!-- Custom placeholder image with optional blur -->
+                    {% if video.blur_level != 'none' %}
+                        <img src="/placeholder-image/{{ video.id }}" 
+                             alt="{{ video.title }}"
+                             style="width: 100%; height: 100%; object-fit: cover; filter: blur({% if video.blur_level == 'light' %}8px{% elif video.blur_level == 'heavy' %}16px{% elif video.blur_level == 'full' %}25px{% endif %});">
+                    {% else %}
+                        <img src="/placeholder-image/{{ video.id }}" 
+                             alt="{{ video.title }}"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    {% endif %}
+                {% else %}
+                    <!-- Gradient placeholder with optional blur (NO TEXT) -->
+                    {% if video.blur_level != 'none' %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); filter: blur({% if video.blur_level == 'light' %}8px{% elif video.blur_level == 'heavy' %}16px{% elif video.blur_level == 'full' %}25px{% endif %});"></div>
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    {% endif %}
+                {% endif %}
+                <!-- NO LOCK ICON - removed completely -->
+            {% else %}
+                <!-- REAL VIDEO: Show thumbnail with optional blur -->
+                {% if video.custom_blur_image and video.blur_level != 'none' %}
+                    <!-- Custom blur image -->
+                    <img src="/thumbnail/{{ video.id }}" 
+                         alt="{{ video.title }}"
+                         style="width: 100%; height: 100%; object-fit: cover;">
+                {% elif video.blur_level != 'none' %}
+                    <!-- Apply CSS blur filter -->
+                    <img src="/thumbnail/{{ video.id }}" 
+                         alt="{{ video.title }}"
+                         style="width: 100%; height: 100%; object-fit: cover; filter: blur({% if video.blur_level == 'light' %}8px{% elif video.blur_level == 'heavy' %}16px{% elif video.blur_level == 'full' %}25px{% endif %});">
+                {% else %}
+                    <!-- No blur, normal thumbnail -->
+                    {% if video.thumbnail_filename %}
+                        <img src="/thumbnail/{{ video.id }}" 
+                             alt="{{ video.title }}"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                        <span>No Preview</span>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            
+            <!-- Duration badge (bottom right) -->
+            <div style="position: absolute; bottom: 8px; right: 8px; background: rgba(0, 0, 0, 0.7); color: white; padding: 0.4rem 0.6rem; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">
+                {% if video.is_placeholder %}
+                    {% if video.fake_duration_seconds %}
+                        {{ (video.fake_duration_seconds // 60) }}:{{ '%02d' | format(video.fake_duration_seconds % 60) }} min
+                    {% else %}
+                        <!-- Show generic duration instead of "Coming Soon" -->
+                        12:34 min
+                    {% endif %}
+                {% else %}
+                    {% if video.duration_seconds %}
+                        {% set minutes = video.duration_seconds // 60 %}
+                        {% set seconds = video.duration_seconds % 60 %}
+                        {% if minutes < 60 %}
+                            {{ minutes }}:{{ '%02d' | format(seconds) }} min
+                        {% else %}
+                            {% set hours = minutes // 60 %}
+                            {% set mins = minutes % 60 %}
+                            {{ hours }}:{{ '%02d' | format(mins) }}:{{ '%02d' | format(seconds) }}
+                        {% endif %}
+                    {% else %}
+                        Unknown
+                    {% endif %}
+                {% endif %}
+            </div>
+            
+            <!-- Blur indicator (top right if blur is active) - only for real videos -->
+            {% if video.blur_level != 'none' and not video.is_placeholder %}
+                <div style="position: absolute; top: 8px; right: 8px; background: #2196F3; color: white; padding: 0.3rem 0.6rem; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+                    {{ video.blur_level | upper }}
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="video-info">
+            <h3 class="video-title">{{ video.title }}</h3>
+            <div class="video-meta">
+                <span class="badge badge-{{ video.access_type.value }}">
+                    {{ video.access_type.value.upper() }}
+                </span>
+                {% if video.access_type.value == 'ppv' and video.ppv_price %}
+                    <span>${{ video.ppv_price }}</span>
+                {% endif %}
+                <span style="float: right;">
+                    {{ video.view_count }} views
+                </span>
+            </div>
+            
+            <!-- NO PLACEHOLDER BADGE - removed completely -->
+        </div>
+    </a>
+    {% else %}
+    <div class="card text-center" style="grid-column: 1 / -1;">
+        <p style="color: var(--text-secondary);">No videos available yet.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% if videos %}
+<div class="flex gap-2" style="justify-content: center; margin-top: 2rem;">
+    {% if page > 1 %}
+        <a href="/browse?page={{ page - 1 }}" class="btn">&larr; Previous</a>
+    {% endif %}
+    <span style="padding: 0.6rem 1.2rem; color: var(--text-secondary);">
+        Page {{ page }}
+    </span>
+    {% if videos|length == 20 %}
+        <a href="/browse?page={{ page + 1 }}" class="btn">Next &rarr;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+<style>
+.video-card {
+    transition: transform 0.2s;
+}
+
+.video-card:hover {
+    transform: translateY(-4px);
+}
+
+.video-thumbnail {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #f0f0f0;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.video-info {
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 0 0 8px 8px;
+    border: 1px solid var(--border);
+    border-top: none;
+}
+
+.video-title {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.video-meta {
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+</style>
+{% endblock %}

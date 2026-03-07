@@ -1,0 +1,26 @@
+# ============================================
+# TorStream - Tor Hidden Service Configuration
+# ============================================
+
+# Disable SOCKS (not needed for hidden service)
+SocksPort 0
+
+# Disable ControlPort
+ControlPort 0
+
+# Hidden service v3
+HiddenServiceDir /var/lib/tor/hidden_service/
+HiddenServiceVersion 3
+HiddenServicePort 80 nginx:80
+
+# Security settings
+MaxClientCircuitsPending 64
+NumEntryGuards 8
+
+# Performance for streaming 
+BandwidthRate 5 MBytes
+BandwidthBurst 10 MBytes
+
+# Logging 
+Log notice stdout
+SafeLogging 1

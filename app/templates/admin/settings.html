@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}System Settings - TorStream{% endblock %}
+
+{% block content %}
+<h1>System Settings</h1>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Setting</th>
+                <th>Value</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in config %}
+            <tr>
+                <td>{{ item.key }}</td>
+                <td>{{ item.value }}</td>
+                <td>{{ item.description }}</td>
+                <td>
+                    {% if item.is_editable %}
+                    <form method="post" action="/admin/settings/update" style="display: inline;">
+                        <input type="hidden" name="key" value="{{ item.key }}">
+                        <input type="text" name="value" value="{{ item.value }}" 
+                               class="form-control" style="display: inline; width: auto; max-width: 150px;">
+                        <button type="submit" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                            Update
+                        </button>
+                    </form>
+                    {% else %}
+                    <span style="color: var(--text-secondary);">Read-only</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

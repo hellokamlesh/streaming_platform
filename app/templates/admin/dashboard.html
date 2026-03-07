@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - HotStream{% endblock %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<div class="stats-grid" style="margin-top: 1.5rem;">
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.users.total }}</div>
+        <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.users.premium }}</div>
+        <div class="stat-label">Premium Users</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ stats.videos.total }}</div>
+        <div class="stat-label">Total Videos</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">${{ "%.2f" % stats.payments.total_revenue }}</div>
+        <div class="stat-label">Total Revenue</div>
+    </div>
+</div>
+
+<div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 2rem;">
+    <a href="/admin/users" class="card text-center" style="text-decoration: none;">
+        <h3>User Management</h3>
+        <p style="color: var(--text-secondary);">
+            Ban/unban users, manage premium status
+        </p>
+    </a>
+    
+    <a href="/admin/videos" class="card text-center" style="text-decoration: none;">
+        <h3>Video Management</h3>
+        <p style="color: var(--text-secondary);">
+            Upload, edit, and manage videos
+        </p>
+    </a>
+    
+    <a href="/admin/payments" class="card text-center" style="text-decoration: none;">
+        <h3>Payments</h3>
+        <p style="color: var(--text-secondary);">
+            Manage invoices and refunds
+        </p>
+    </a>
+    
+    <!-- NEW: Contact Messages Card -->
+    <a href="/admin/contacts" class="card text-center" style="text-decoration: none;">
+        <h3>📨 Contact Messages</h3>
+        <p style="color: var(--text-secondary);">
+            View user messages and feedback
+        </p>
+    </a>
+    
+    <a href="/admin/settings" class="card text-center" style="text-decoration: none;">
+        <h3>Settings</h3>
+        <p style="color: var(--text-secondary);">
+            Configure system settings
+        </p>
+    </a>
+    
+    <a href="/admin/logs" class="card text-center" style="text-decoration: none;">
+        <h3>Action Logs</h3>
+        <p style="color: var(--text-secondary);">
+            View admin action history
+        </p>
+    </a>
+    
+    <a href="/video/upload" class="card text-center" style="text-decoration: none;">
+        <h3>Upload Video</h3>
+        <p style="color: var(--text-secondary);">
+            Add new content to platform
+        </p>
+    </a>
+</div>
+{% endblock %}

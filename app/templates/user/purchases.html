@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}My Purchases - TorStream{% endblock %}
+
+{% block content %}
+<h1>My Purchases</h1>
+
+<div class="card" style="margin-top: 1.5rem;">
+    {% if purchases %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Video</th>
+                <th>Price</th>
+                <th>Purchased</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>
+                    <a href="/video/{{ purchase.video_id }}">
+                        {{ purchase.video.title }}
+                    </a>
+                </td>
+                <td>${{ purchase.price_paid }}</td>
+                <td>{{ purchase.purchased_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    {% if purchase.is_refunded %}
+                        <span class="badge" style="background-color: var(--danger);">Refunded</span>
+                    {% elif purchase.is_valid %}
+                        <span class="badge badge-success">Active</span>
+                    {% else %}
+                        <span class="badge" style="background-color: var(--text-secondary);">Expired</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center" style="padding: 2rem;">
+        <p style="color: var(--text-secondary);">You haven't made any purchases yet.</p>
+        <a href="/browse" class="btn btn-primary" style="margin-top: 1rem;">
+            Browse Videos
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

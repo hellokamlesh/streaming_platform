@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Messages - Admin{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem;">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Contact Messages</h1>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                Unread: <span style="font-weight: bold; color: var(--primary);">{{ unread_count }}</span>
+            </p>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <!-- Filters -->
+            <div style="margin-bottom: 1.5rem; display: flex; gap: 1rem;">
+                <a href="/admin/contacts" class="btn" style="padding: 0.5rem 1rem; background: var(--primary); color: white; text-decoration: none; border-radius: 4px;">
+                    All
+                </a>
+                <a href="/admin/contacts?is_read=false" class="btn" style="padding: 0.5rem 1rem; background: var(--warning); color: white; text-decoration: none; border-radius: 4px;">
+                    Unread
+                </a>
+                <a href="/admin/contacts?is_read=true" class="btn" style="padding: 0.5rem 1rem; background: var(--success); color: white; text-decoration: none; border-radius: 4px;">
+                    Read
+                </a>
+            </div>
+
+            {% if messages %}
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background: var(--bg-secondary); border-bottom: 2px solid var(--border);">
+                                <th style="padding: 1rem; text-align: left; font-weight: bold;">User</th>
+                                <th style="padding: 1rem; text-align: left; font-weight: bold;">IP Address</th>
+                                <th style="padding: 1rem; text-align: left; font-weight: bold;">Message</th>
+                                <th style="padding: 1rem; text-align: left; font-weight: bold;">Sent</th>
+                                <th style="padding: 1rem; text-align: left; font-weight: bold;">Status</th>
+                                <th style="padding: 1rem; text-align: center; font-weight: bold;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for message in messages %}
+                                <tr style="border-bottom: 1px solid var(--border); background: {% if not message.is_read %}var(--bg-secondary){% endif %};">
+                                    <td style="padding: 1rem; font-weight: {% if not message.is_read %}bold{% endif %};">
+                                        {% if message.user %}
+                                            <strong>{{ message.user.username }}</strong>
+                                            {% if message.name %}
+                                                <br><small style="color: var(--text-secondary);">({{ message.name }})</small>
+                                            {% endif %}
+                                        {% else %}
+                                            {{ message.name or "Anonymous" }}
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 1rem; font-size: 0.85rem; color: var(--text-secondary);">
+                                        {{ message.ip_address }}
+                                    </td>
+                                    <td style="padding: 1rem; max-width: 300px; word-break: break-word;">
+                                        {{ message.message[:100] }}{% if message.message|length > 100 %}...{% endif %}
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                            <a href="#" onclick='showMessage("{{ message.id }}")' style="color: var(--primary); text-decoration: underline; cursor: pointer;">View Full</a>
+                                        </div>
+                                    </td>
+                                    <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-secondary);">
+                                        {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+                                    </td>
+                                    <td style="padding: 1rem;">
+                                        {% if message.is_read %}
+                                            <span style="background: var(--success); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">Read</span>
+                                        {% else %}
+                                            <span style="background: var(--warning); color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.85rem;">Unread</span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center;">
+                                        {% if not message.is_read %}
+                                            <form method="post" action="/admin/contacts/{{ message.id }}/read" style="display: inline;">
+                                                <button type="submit" class="btn" style="padding: 0.25rem 0.5rem; background: var(--success); color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">
+                                                    Mark Read
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        <form method="post" action="/admin/contacts/{{ message.id }}/delete" style="display: inline;" onsubmit="return confirm('Delete this message?');">
+                                            <button type="submit" class="btn" style="padding: 0.25rem 0.5rem; background: var(--danger); color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 0.8rem;">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div style="margin-top: 2rem; text-align: center;">
+                    {% if page > 1 %}
+                        <a href="/admin/contacts?page={{ page - 1 }}" class="btn" style="padding: 0.5rem 1rem; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; margin-right: 0.5rem;">Previous</a>
+                    {% endif %}
+                    <span style="padding: 0.5rem 1rem;">Page {{ page }} of {{ total_pages }}</span>
+                    {% if page < total_pages %}
+                        <a href="/admin/contacts?page={{ page + 1 }}" class="btn" style="padding: 0.5rem 1rem; background: var(--primary); color: white; text-decoration: none; border-radius: 4px; margin-left: 0.5rem;">Next</a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <p>No contact messages found.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal for full message -->
+<div id="messageModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 1000; align-items: center; justify-content: center;">
+    <div class="card" style="width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
+        <div class="card-header">
+            <h2 class="card-title" style="margin: 0;">Full Message</h2>
+            <button onclick="closeMessage()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer;">×</button>
+        </div>
+        <div style="padding: 1.5rem;">
+            <p><strong>From:</strong> <span id="modalName"></span></p>
+            <p><strong>Username:</strong> <span id="modalUsername"></span></p>
+            <p><strong>IP Address:</strong> <span id="modalIP"></span></p>
+            <p><strong>Sent:</strong> <span id="modalDate"></span></p>
+            <hr style="border: none; border-top: 1px solid var(--border); margin: 1rem 0;">
+            <p id="modalMessage" style="white-space: pre-wrap; word-break: break-word;"></p>
+        </div>
+    </div>
+</div>
+
+<script>
+function showMessage(messageId) {
+    // Find the message row data from the table
+    const rows = document.querySelectorAll('tbody tr');
+    let messageData = null;
+    
+    for (const row of rows) {
+        if (row.innerHTML.includes(messageId)) {
+            const cells = row.cells;
+            const nameCell = cells[0].innerText.trim().split('\n')[0];
+            const usernameMatch = cells[0].innerHTML.match(/<strong>(.*?)<\/strong>/);
+            const username = usernameMatch ? usernameMatch[1] : 'Not logged in';
+            
+            messageData = {
+                name: nameCell,
+                username: username,
+                ip: cells[1].innerText.trim(),
+                message: cells[2].innerText.split('View Full')[0].trim(),
+                date: cells[3].innerText.trim()
+            };
+            break;
+        }
+    }
+    
+    if (messageData) {
+        document.getElementById('modalName').textContent = messageData.name;
+        document.getElementById('modalUsername').textContent = messageData.username;
+        document.getElementById('modalIP').textContent = messageData.ip;
+        document.getElementById('modalDate').textContent = messageData.date;
+        document.getElementById('modalMessage').textContent = messageData.message;
+        document.getElementById('messageModal').style.display = 'flex';
+    }
+}
+
+function closeMessage() {
+    document.getElementById('messageModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('messageModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

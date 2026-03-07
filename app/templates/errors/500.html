@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - TorStream{% endblock %}
+
+{% block content %}
+<div class="text-center" style="padding: 4rem 0;">
+    <h1 style="font-size: 4rem; color: var(--danger);">500</h1>
+    <h2 style="margin: 1rem 0;">Server Error</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+        Something went wrong on our end. Please try again later.
+    </p>
+    <a href="/home" class="btn btn-primary">Go Home</a>
+</div>
+{% endblock %}

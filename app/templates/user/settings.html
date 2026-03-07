@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - TorStream{% endblock %}
+
+{% block content %}
+<h1>Account Settings</h1>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 1.5rem;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Change Password</h3>
+        </div>
+        
+        {% if success %}
+            <div class="alert alert-success">{{ success }}</div>
+        {% endif %}
+        
+        {% if error %}
+            <div class="alert alert-error">{{ error }}</div>
+        {% endif %}
+        
+        <form method="post" action="/user/settings/change-password">
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password" 
+                       class="form-control" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password" 
+                       class="form-control" required minlength="8">
+                <small style="color: var(--text-secondary);">Minimum 8 characters</small>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Change Password</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Account Information</h3>
+        </div>
+        
+        <table class="table">
+            <tr>
+                <td>Username</td>
+                <td>{{ user.username }}</td>
+            </tr>
+            <tr>
+                <td>Account Type</td>
+                <td>
+                    {% if user.is_premium_active %}
+                        <span class="badge badge-premium">Premium</span>
+                    {% else %}
+                        <span class="badge badge-free">Free</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td>Member Since</td>
+                <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% if user.premium_expires_at %}
+            <tr>
+                <td>Premium Expires</td>
+                <td>{{ user.premium_expires_at.strftime('%Y-%m-%d') }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+{% endblock %}

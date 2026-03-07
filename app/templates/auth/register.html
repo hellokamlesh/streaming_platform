@@ -1,0 +1,354 @@
+{% extends "base.html" %}
+
+{% block title %}Register - TorStream{% endblock %}
+
+{% block content %}
+<style>
+.register-container {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+.register-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.register-card-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.register-card-title {
+    margin: 0;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.register-error {
+    background: var(--danger);
+    color: white;
+    padding: 15px;
+    margin: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+    border: 2px solid #8b3333;
+}
+
+.register-disabled {
+    background: var(--warning);
+    color: white;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 1rem;
+    border: 1px solid #d97e2e;
+}
+
+.register-form {
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+}
+
+.form-hint {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.captcha-section {
+    margin-bottom: 1.5rem;
+}
+
+.captcha-image {
+    max-width: 200px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 5px;
+    background: var(--bg-secondary);
+    text-align: center;
+    margin-bottom: 0.5rem;
+    width: 100%;
+}
+
+.refresh-btn {
+    background: var(--text-secondary);
+    color: white;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    text-align: right;
+    width: 100%;
+}
+
+.refresh-btn:hover {
+    opacity: 0.9;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.submit-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 0;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+</style>
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-card-header">
+            <h2 class="register-card-title">Create Account</h2>
+        </div>
+
+        <!-- ERROR DISPLAY - Only shown if error exists -->
+        {% if error %}
+        <div class="register-error">
+            ⚠ {{ error }}
+        </div>
+        {% endif %}
+        
+        <!-- REGISTRATION DISABLED MESSAGE -->
+        {% if not registration_enabled %}
+            <div class="register-disabled">
+                Registration is currently disabled. Please try again later.
+            </div>
+        {% else %}
+            <!-- REGISTRATION FORM -->
+            <form method="post" action="/auth/register" class="register-form" id="registerForm">
+                <!-- USERNAME FIELD -->
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input"
+                        required
+                        minlength="3"
+                        maxlength="32"
+                        pattern="[a-zA-Z]+"
+                        title="Letters only"
+                        placeholder="Choose a username"
+                        value="{{ username or '' }}"
+                    >
+                    <small class="form-hint">
+                        Letters only, 3-32 characters
+                    </small>
+                </div>
+                
+                <!-- PASSWORD FIELD -->
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input"
+                        required
+                        minlength="8"
+                        placeholder="Choose a password"
+                    >
+                    <small class="form-hint">
+                        Minimum 8 characters
+                    </small>
+                </div>
+                
+                <!-- CAPTCHA SECTION -->
+                {% if captcha_token %}
+                <div class="captcha-section">
+                    <label class="form-label">Security Check</label>
+                    {% if captcha_image %}
+                        <div>
+                            <img 
+                                src="data:image/png;base64,{{ captcha_image }}" 
+                                alt="Captcha"
+                                class="captcha-image"
+                                id="captchaImage"
+                            >
+                        </div>
+                        <div style="text-align: right; margin-bottom: 0.5rem;">
+                            <button type="button" onclick="refreshCaptcha()" class="refresh-btn">
+                                🔄 Refresh Captcha
+                            </button>
+                        </div>
+                    {% endif %}
+                    <input 
+                        type="text" 
+                        name="captcha_code" 
+                        id="captcha_code"
+                        class="form-input"
+                        required
+                        placeholder="Enter the code above"
+                        autocomplete="off"
+                    >
+                    <input type="hidden" name="captcha_token" id="captcha_token" value="{{ captcha_token }}">
+                    <small class="form-hint">
+                        Enter the characters shown in the image
+                    </small>
+                </div>
+                {% endif %}
+                
+                <!-- SUBMIT BUTTON -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Create Account
+                </button>
+            </form>
+            
+            <!-- LOGIN LINK -->
+            <p class="login-link">
+                Already have an account? <a href="/auth/login">Login</a>
+            </p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- CAPTCHA REFRESH SCRIPT -->
+<script>
+function refreshCaptcha() {
+    // Show loading state on button
+    const refreshBtn = event?.target;
+    if (refreshBtn) {
+        const originalText = refreshBtn.textContent;
+        refreshBtn.textContent = '🔄 Refreshing...';
+        refreshBtn.disabled = true;
+    }
+    
+    fetch('/api/captcha')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Captcha refreshed successfully');
+            
+            // Update captcha image - data.image already has the full data URL
+            const captchaImg = document.getElementById('captchaImage');
+            if (captchaImg && data.image) {
+                captchaImg.src = data.image;  // ✅ CORRECT - just use data.image
+                console.log('Captcha image updated');
+            } else {
+                console.warn('Captcha image element not found or no image data');
+            }
+            
+            // Update captcha token
+            const tokenInput = document.getElementById('captcha_token');
+            if (tokenInput && data.token) {
+                tokenInput.value = data.token;
+                console.log('Captcha token updated');
+            } else {
+                console.warn('Captcha token input not found or no token data');
+            }
+            
+            // Clear captcha input field
+            const codeInput = document.getElementById('captcha_code');
+            if (codeInput) {
+                codeInput.value = '';
+                console.log('Captcha input cleared');
+            }
+        })
+        .catch(error => {
+            console.error('Error refreshing captcha:', error);
+            // Show user-friendly error message
+            alert('Failed to refresh captcha. Please try again or reload the page.');
+        })
+        .finally(() => {
+            // Reset button state
+            if (refreshBtn) {
+                refreshBtn.textContent = '🔄 Refresh Captcha';
+                refreshBtn.disabled = false;
+            }
+        });
+}
+
+// Auto-hide error after 8 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    const errorDiv = document.querySelector('.register-error');
+    if (errorDiv) {
+        setTimeout(function() {
+            errorDiv.style.transition = 'opacity 0.5s';
+            errorDiv.style.opacity = '0';
+            setTimeout(function() {
+                errorDiv.style.display = 'none';
+            }, 500);
+        }, 8000);
+    }
+});
+
+// Add keyboard shortcut for refresh (Ctrl+R refreshes captcha)
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        refreshCaptcha();
+    }
+});
+</script>
+{% endblock %}

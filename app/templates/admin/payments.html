@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Management - TorStream{% endblock %}
+
+{% block content %}
+<h1>Payment Management</h1>
+
+<h2 style="margin-top: 2rem;">Pending Payments</h2>
+<div class="card">
+    {% if pending_payments %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in pending_payments %}
+            <tr>
+                <td>{{ invoice.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ invoice.user.username }}</td>
+                <td>{{ invoice.invoice_type.value }}</td>
+                <td>${{ invoice.amount_usd }}</td>
+                <td>
+                    <form method="post" action="/admin/payments/{{ invoice.id }}/approve" style="display: inline;">
+                        <button type="submit" class="btn btn-success" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                            Approve
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-secondary);">No pending payments.</p>
+    {% endif %}
+</div>
+
+<h2 style="margin-top: 2rem;">Recent Purchases</h2>
+<div class="card">
+    {% if purchases %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Video</th>
+                <th>Price</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ purchase.purchased_at.strftime('%Y-%m-%d') }}</td>
+                <td>{{ purchase.user.username }}</td>
+                <td>{{ purchase.video.title }}</td>
+                <td>${{ purchase.price_paid }}</td>
+                <td>
+                    {% if purchase.is_refunded %}
+                        <span class="badge" style="background-color: var(--danger);">Refunded</span>
+                    {% else %}
+                        <span class="badge badge-success">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not purchase.is_refunded %}
+                    <form method="post" action="/admin/purchases/{{ purchase.id }}/refund" style="display: inline;">
+                        <input type="hidden" name="reason" value="Administrative refund">
+                        <button type="submit" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;"
+                                onclick="return confirm('Refund this purchase?');">
+                            Refund
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-secondary);">No purchases yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

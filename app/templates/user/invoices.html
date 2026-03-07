@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}My Invoices - TorStream{% endblock %}
+
+{% block content %}
+<h1>My Invoices</h1>
+
+<div class="card" style="margin-top: 1.5rem;">
+    {% if invoices %}
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+                <td>{{ invoice.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    {% if invoice.invoice_type.value == 'ppv' %}
+                        PPV Purchase
+                    {% elif invoice.invoice_type.value == 'subscription_monthly' %}
+                        Monthly Subscription
+                    {% elif invoice.invoice_type.value == 'subscription_yearly' %}
+                        Yearly Subscription
+                    {% endif %}
+                </td>
+                <td>${{ invoice.amount_usd }}</td>
+                <td>
+                    <span class="badge" 
+                          style="background-color: 
+                            {% if invoice.status.value == 'settled' %}var(--success)
+                            {% elif invoice.status.value == 'pending' %}var(--warning)
+                            {% elif invoice.status.value == 'expired' %}var(--text-secondary)
+                            {% else %}var(--danger){% endif %};">
+                        {{ invoice.status.value.title() }}
+                    </span>
+                </td>
+                <td>
+                    <a href="/payment/invoice/{{ invoice.id }}" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center" style="padding: 2rem;">
+        <p style="color: var(--text-secondary);">No invoices found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

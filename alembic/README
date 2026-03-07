@@ -1,0 +1,13 @@
+TorStream Database Migrations
+
+Generate new migration:
+    alembic revision --autogenerate -m "description"
+
+Apply migrations:
+    alembic upgrade head
+
+Rollback one migration:
+    alembic downgrade -1
+
+View current version:
+    alembic current

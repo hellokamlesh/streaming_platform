@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Login - TorStream{% endblock %}
+
+{% block content %}
+<style>
+.login-container {
+    max-width: 400px;
+    margin: 2rem auto;
+}
+
+.login-card {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.login-card-header {
+    background: var(--bg-tertiary);
+    padding: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.login-card-title {
+    margin: 0;
+    color: var(--text-primary);
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.alert {
+    padding: 15px;
+    margin: 15px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.alert-success {
+    background: var(--success);
+    color: white;
+    border: 2px solid #1a5c2a;
+}
+
+.alert-error {
+    background: var(--danger);
+    color: white;
+    border: 2px solid #8b3333;
+}
+
+.alert-ratelimit {
+    background: var(--warning);
+    color: white;
+    border: 2px solid #d97e2e;
+}
+
+.login-form {
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+
+.login-link {
+    text-align: center;
+    margin-top: 0;
+    color: var(--text-secondary);
+}
+
+.login-link a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+.form-hint {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-card-header">
+            <h2 class="login-card-title">Login</h2>
+        </div>
+        
+        <!-- SUCCESS MESSAGE -->
+        {% if registered %}
+            <div class="alert alert-success">
+                ✓ Account created successfully! Please login.
+            </div>
+        {% endif %}
+        
+        <!-- ERROR MESSAGE - Handle different error types -->
+        {% if error %}
+            {% if "Too many" in error or "rate" in error.lower() %}
+                <div class="alert alert-ratelimit">
+                    ⏱ {{ error }}
+                </div>
+            {% elif "banned" in error.lower() %}
+                <div class="alert alert-ratelimit">
+                    🚫 {{ error }}
+                </div>
+            {% else %}
+                <div class="alert alert-error">
+                    ✗ {{ error }}
+                </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- LOGIN FORM -->
+        <form method="post" action="/auth/login" class="login-form" id="loginForm">
+            <!-- USERNAME FIELD -->
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    class="form-input"
+                    required
+                    autofocus
+                    placeholder="Enter your username"
+                >
+                <small class="form-hint">
+                    Your registered username
+                </small>
+            </div>
+            
+            <!-- PASSWORD FIELD -->
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-input"
+                    required
+                    placeholder="Enter your password"
+                >
+                <small class="form-hint">
+                    Your secure password
+                </small>
+            </div>
+            
+            <!-- SUBMIT BUTTON -->
+            <button type="submit" class="submit-btn" id="submitBtn">
+                Login
+            </button>
+        </form>
+        
+        <!-- REGISTER LINK -->
+        <p class="login-link">
+            Don't have an account? <a href="/auth/register">Register</a>
+        </p>
+    </div>
+</div>
+
+<script>
+// Simple form submission
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('loginForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Logging in...';
+        });
+    }
+});
+</script>
+{% endblock %}

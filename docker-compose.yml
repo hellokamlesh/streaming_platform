@@ -1,0 +1,165 @@
+# ============================================
+# TorStream - Docker Compose Configuration
+# ============================================
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: torstream-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-torstream}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ${POSTGRES_DB:-torstream}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - torstream-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-torstream} -d ${POSTGRES_DB:-torstream}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: torstream-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-changeme}
+    volumes:
+      - redis_data:/data
+    networks:
+      - torstream-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 64M
+
+  # FastAPI Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: torstream-app
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-torstream}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-torstream}
+      - REDIS_URL=redis://:${REDIS_PASSWORD:-changeme}@redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-changeme}
+      - ADMIN_SECRET_KEY=${ADMIN_SECRET_KEY:-changeme-admin}
+      - DEBUG=${DEBUG:-false}
+      - BTCPAY_URL=${BTCPAY_URL:-}
+      - BTCPAY_API_KEY=${BTCPAY_API_KEY:-}
+      - BTCPAY_STORE_ID=${BTCPAY_STORE_ID:-}
+      - BTCPAY_WEBHOOK_SECRET=${BTCPAY_WEBHOOK_SECRET:-}
+      - PREMIUM_MONTHLY_PRICE=${PREMIUM_MONTHLY_PRICE:-9.99}
+      - PREMIUM_YEARLY_PRICE=${PREMIUM_YEARLY_PRICE:-99.99}
+      - MAX_UPLOAD_SIZE=${MAX_UPLOAD_SIZE:-5368709120}
+      - REGISTRATION_ENABLED=${REGISTRATION_ENABLED:-true}
+      - UPLOADS_ENABLED=${UPLOADS_ENABLED:-true}
+    volumes:
+      - video_storage:/app/static/uploads
+      - preview_storage:/app/static/previews
+      - ./logs:/app/logs
+    networks:
+      - torstream-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: torstream-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - video_storage:/var/www/videos:ro
+      - preview_storage:/var/www/previews:ro
+    networks:
+      - torstream-network
+    depends_on:
+      - app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 128M
+        reservations:
+          cpus: '0.1'
+          memory: 32M
+
+  # Tor Hidden Service
+  tor:
+    image: tor:latest
+    container_name: torstream-tor
+    restart: unless-stopped
+    volumes:
+      - ./tor/torrc:/etc/tor/torrc:ro
+      - tor_data:/var/lib/tor
+    networks:
+      - torstream-network
+    depends_on:
+      - nginx
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 64M
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  video_storage:
+    driver: local
+  preview_storage:
+    driver: local
+  tor_data:
+    driver: local
+
+networks:
+  torstream-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

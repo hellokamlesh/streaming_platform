@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Invoice - TorStream{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header text-center">
+            <h2 class="card-title">Invoice</h2>
+        </div>
+        
+        <div class="text-center" style="padding: 2rem;">
+            <div style="margin-bottom: 1.5rem;">
+                <span class="badge" 
+                      style="font-size: 1rem; padding: 0.5rem 1rem;
+                             background-color: 
+                                {% if invoice.status.value == 'settled' %}var(--success)
+                                {% elif invoice.status.value == 'pending' %}var(--warning)
+                                {% elif invoice.status.value == 'expired' %}var(--text-secondary)
+                                {% else %}var(--danger){% endif %};">
+                    {{ invoice.status.value.upper() }}
+                </span>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: var(--text-secondary);">Amount</p>
+                <p style="font-size: 2.5rem; font-weight: bold;">
+                    ${{ invoice.amount_usd }}
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: var(--text-secondary);">Type</p>
+                <p style="font-size: 1.2rem;">
+                    {% if invoice.invoice_type.value == 'ppv' %}
+                        Pay-Per-View Purchase
+                    {% elif invoice.invoice_type.value == 'subscription_monthly' %}
+                        Monthly Subscription
+                    {% elif invoice.invoice_type.value == 'subscription_yearly' %}
+                        Yearly Subscription
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: var(--text-secondary);">Created</p>
+                <p>{{ invoice.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+            </div>
+            
+            {% if invoice.expires_at and invoice.status.value == 'pending' %}
+            <div style="margin-bottom: 1.5rem;">
+                <p style="color: var(--text-secondary);">Expires</p>
+                <p>{{ invoice.expires_at.strftime('%B %d, %Y at %H:%M') }}</p>
+            </div>
+            {% endif %}
+            
+            {% if invoice.status.value == 'pending' %}
+                <div style="margin-top: 2rem;">
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Complete your payment to continue.
+                    </p>
+                    {% if invoice.btcpay_data and invoice.btcpay_data.checkoutLink %}
+                        <a href="{{ invoice.btcpay_data.checkoutLink }}" class="btn btn-primary" style="width: 100%;">
+                            Pay with Bitcoin
+                        </a>
+                    {% endif %}
+                    <form method="get" action="/payment/reconcile/{{ invoice.id }}" style="margin-top: 1rem;">
+                        <button type="submit" class="btn" style="width: 100%;">
+                            Check Payment Status
+                        </button>
+                    </form>
+                </div>
+            {% elif invoice.status.value == 'settled' %}
+                <div class="alert alert-success" style="margin-top: 1.5rem;">
+                    Payment completed successfully!
+                </div>
+                {% if invoice.video_id %}
+                    <a href="/video/{{ invoice.video_id }}" class="btn btn-primary" style="margin-top: 1rem;">
+                        Watch Video
+                    </a>
+                {% else %}
+                    <a href="/browse" class="btn btn-primary" style="margin-top: 1rem;">
+                        Browse Content
+                    </a>
+                {% endif %}
+            {% elif invoice.status.value == 'expired' %}
+                <div class="alert alert-error" style="margin-top: 1.5rem;">
+                    This invoice has expired. Please create a new one.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}{{ video.title }} - TorStream{% endblock %}
+
+{% block content %}
+<div class="card">
+    {% if can_access %}
+        <video 
+            class="video-player" 
+            controls
+            poster="{% if video.thumbnail_filename %}/thumbnail/{{ video.id }}{% endif %}"
+        >
+            <source src="/video/stream/{{ video.id }}" type="{{ video.mime_type }}">
+            Your browser does not support the video tag.
+        </video>
+    {% else %}
+        <div class="video-thumbnail" style="aspect-ratio: 16/9; background-color: var(--bg-tertiary);">
+            {% if video.preview_filename %}
+                <video class="video-player" controls style="max-height: 400px;">
+                    <source src="/preview/{{ video.id }}" type="video/mp4">
+                </video>
+            {% else %}
+                <div style="text-align: center;">
+                    <p>Preview not available</p>
+                    <span class="badge badge-{{ video.access_type.value }}">
+                        {{ video.access_type.value.upper() }}
+                    </span>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+    
+    <div style="padding: 1.5rem;">
+        <h1 style="margin-bottom: 0.5rem;">{{ video.title }}</h1>
+        
+        <div style="margin-bottom: 1rem;">
+            <span class="badge badge-{{ video.access_type.value }}">
+                {{ video.access_type.value.upper() }}
+            </span>
+            <span style="color: var(--text-secondary); margin-left: 1rem;">
+                {{ video.view_count }} views
+            </span>
+            {% if video.duration_seconds %}
+                <span style="color: var(--text-secondary); margin-left: 1rem;">
+                    {{ video.duration_seconds // 60 }}:{{ "%02d" % (video.duration_seconds % 60) }}
+                </span>
+            {% endif %}
+        </div>
+        
+        {% if video.description %}
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                {{ video.description }}
+            </p>
+        {% endif %}
+        
+        {% if not can_access %}
+            <div class="alert alert-error">
+                {% if video.access_type.value == 'premium' %}
+                    <p>This video requires a premium subscription.</p>
+                    <a href="/payment/subscribe" class="btn btn-primary mt-2">
+                        Subscribe Now
+                    </a>
+                {% elif video.access_type.value == 'ppv' %}
+                    <p>This video requires a one-time purchase.</p>
+                    <p style="font-size: 1.2rem; margin: 1rem 0;">
+                        Price: <strong>${{ video.ppv_price }}</strong>
+                    </p>
+                    <a href="/payment/buy/{{ video.id }}" class="btn btn-primary">
+                        Purchase Now
+                    </a>
+                {% else %}
+                    <p>Please login to watch this video.</p>
+                    <a href="/auth/login" class="btn btn-primary mt-2">Login</a>
+                {% endif %}
+            </div>
+        {% else %}
+            {% if user and user.is_premium_active %}
+                <a href="/video/download/{{ video.id }}" class="btn">
+                    Download
+                </a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

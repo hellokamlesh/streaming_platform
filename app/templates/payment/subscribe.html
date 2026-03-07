@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Subscribe - TorStream{% endblock %}
+
+{% block content %}
+<style>
+.plan-card {
+    cursor: pointer;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.2s;
+    border: 2px solid var(--border);
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    position: relative;
+}
+
+.plan-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.plan-card.selected {
+    border-color: var(--accent);
+    border-width: 2px;
+    box-shadow: 0 0 0 2px rgba(233, 69, 96, 0.2);
+}
+
+.plan-card input[type="radio"] {
+    display: none;
+}
+
+.plan-price {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 1rem 0;
+}
+
+.best-value-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: white;
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    z-index: 10;
+}
+
+.savings-text {
+    color: var(--success);
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+.feature-list {
+    color: var(--text-secondary);
+    margin-top: 1rem;
+    list-style: none;
+    padding: 0;
+}
+
+.feature-list li {
+    padding: 0.3rem 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    margin-top: 1rem;
+}
+
+.submit-btn:hover {
+    opacity: 0.9;
+}
+</style>
+
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header text-center">
+            <h2 class="card-title">Choose Your Plan</h2>
+        </div>
+        
+        <div style="padding: 2rem;">
+            <form method="post" action="/payment/subscribe" id="subscribeForm">
+                <div class="grid-container">
+                    <!-- Monthly Plan -->
+                    <div class="plan-card {% if selected_plan == 'monthly' %}selected{% endif %}" 
+                         id="monthly-card"
+                         onclick="document.getElementById('plan_monthly').click();">
+                        <input type="radio" 
+                               name="plan" 
+                               id="plan_monthly"
+                               value="monthly" 
+                               {% if selected_plan == 'monthly' or not selected_plan %}checked{% endif %}>
+                        <h3>Monthly</h3>
+                        <div class="plan-price">
+                            ${{ monthly_price }}
+                        </div>
+                        <p style="color: var(--text-secondary);">per month</p>
+                    </div>
+                    
+                    <!-- Yearly Plan -->
+                    <div class="plan-card {% if selected_plan == 'yearly' %}selected{% endif %}" 
+                         id="yearly-card"
+                         onclick="document.getElementById('plan_yearly').click();">
+                        <div class="best-value-badge">🏆 BEST VALUE</div>
+                        <input type="radio" 
+                               name="plan" 
+                               id="plan_yearly"
+                               value="yearly" 
+                               {% if selected_plan == 'yearly' %}checked{% endif %}>
+                        <h3>Yearly</h3>
+                        <div class="plan-price">
+                            ${{ yearly_price }}
+                        </div>
+                        <p style="color: var(--text-secondary);">per year</p>
+                        <div class="savings-text">
+                            Save {{ ((1 - yearly_price / (monthly_price * 12)) * 100)|round|int }}%
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    Continue to Payment - ${{ monthly_price if selected_plan == 'monthly' else yearly_price }}
+                </button>
+            </form>
+            
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <h4>What's Included:</h4>
+                <ul class="feature-list">
+                    <li>✓ Unlimited access to all premium content</li>
+                    <li>✓ HD streaming</li>
+                    <li>✓ Download videos for offline viewing</li>
+                    <li>✓ Cancel anytime</li>
+                </ul>
+            </div>
+            
+            <p class="text-center" style="margin-top: 2rem; color: var(--text-secondary); font-size: 0.9rem;">
+                Payments are processed securely via Bitcoin. No personal information required.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const monthlyPrice = {{ monthly_price }};
+    const yearlyPrice = {{ yearly_price }};
+    const submitBtn = document.getElementById('submitBtn');
+    const monthlyRadio = document.getElementById('plan_monthly');
+    const yearlyRadio = document.getElementById('plan_yearly');
+    const monthlyCard = document.getElementById('monthly-card');
+    const yearlyCard = document.getElementById('yearly-card');
+    
+    function updateSelection() {
+        // Remove selected class from both cards
+        monthlyCard.classList.remove('selected');
+        yearlyCard.classList.remove('selected');
+        
+        // Update based on which radio is checked
+        if (monthlyRadio.checked) {
+            monthlyCard.classList.add('selected');
+            submitBtn.textContent = 'Continue to Payment - $' + monthlyPrice;
+        } else {
+            yearlyCard.classList.add('selected');
+            submitBtn.textContent = 'Continue to Payment - $' + yearlyPrice;
+        }
+    }
+    
+    // Add event listeners
+    monthlyRadio.addEventListener('change', updateSelection);
+    yearlyRadio.addEventListener('change', updateSelection);
+    
+    // Make cards clickable
+    monthlyCard.addEventListener('click', function(e) {
+        monthlyRadio.checked = true;
+        updateSelection();
+    });
+    
+    yearlyCard.addEventListener('click', function(e) {
+        yearlyRadio.checked = true;
+        updateSelection();
+    });
+    
+    // Run once on page load
+    updateSelection();
+})();
+</script>
+{% endblock %}

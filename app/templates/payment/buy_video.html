@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Purchase {{ video.title }} - TorStream{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header text-center">
+            <h2 class="card-title">Purchase Video</h2>
+        </div>
+        
+        <div style="padding: 2rem;">
+            <div class="text-center" style="margin-bottom: 2rem;">
+                <h3>{{ video.title }}</h3>
+                {% if video.thumbnail_filename %}
+                    <img src="/static/previews/{{ video.thumbnail_filename }}" 
+                         alt="{{ video.title }}"
+                         style="max-width: 100%; border-radius: 8px; margin-top: 1rem;">
+                {% endif %}
+            </div>
+            
+            <div class="text-center" style="margin-bottom: 2rem;">
+                <p style="color: var(--text-secondary);">Price</p>
+                <p style="font-size: 2.5rem; font-weight: bold;">
+                    ${{ video.ppv_price }}
+                </p>
+            </div>
+            
+            <form method="post" action="/payment/buy/{{ video.id }}">
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;">
+                    Purchase with Bitcoin
+                </button>
+            </form>
+            
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    <strong>Note:</strong> This is a one-time purchase. You'll have permanent 
+                    access to this video after payment confirmation.
+                </p>
+            </div>
+            
+            <p class="text-center" style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                Or <a href="/payment/subscribe">subscribe to Premium</a> for unlimited access.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

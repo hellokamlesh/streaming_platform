@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Logs - TorStream{% endblock %}
+
+{% block content %}
+<h1>Admin Action Logs</h1>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <form method="get" action="/admin/logs" class="flex gap-2" style="margin-bottom: 1rem;">
+        <select name="action_type" class="form-control" style="max-width: 200px;">
+            <option value="">All Actions</option>
+            <option value="ban_user" {% if action_type == 'ban_user' %}selected{% endif %}>Ban User</option>
+            <option value="unban_user" {% if action_type == 'unban_user' %}selected{% endif %}>Unban User</option>
+            <option value="grant_premium" {% if action_type == 'grant_premium' %}selected{% endif %}>Grant Premium</option>
+            <option value="revoke_premium" {% if action_type == 'revoke_premium' %}selected{% endif %}>Revoke Premium</option>
+            <option value="toggle_video" {% if action_type == 'toggle_video' %}selected{% endif %}>Toggle Video</option>
+            <option value="delete_video" {% if action_type == 'delete_video' %}selected{% endif %}>Delete Video</option>
+            <option value="approve_payment" {% if action_type == 'approve_payment' %}selected{% endif %}>Approve Payment</option>
+            <option value="update_config" {% if action_type == 'update_config' %}selected{% endif %}>Update Config</option>
+        </select>
+        <button type="submit" class="btn">Filter</button>
+    </form>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Admin</th>
+                <th>Action</th>
+                <th>Description</th>
+                <th>Target</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td>{{ log.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ log.admin.username if log.admin else 'System' }}</td>
+                <td>{{ log.action_type }}</td>
+                <td>{{ log.action_description }}</td>
+                <td>{{ log.target_user.username if log.target_user else '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

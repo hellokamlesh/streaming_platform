@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - TorStream{% endblock %}
+
+{% block content %}
+<h1>User Management</h1>
+
+<div class="card" style="margin-top: 1.5rem;">
+    <form method="get" action="/admin/users" class="flex gap-2" style="margin-bottom: 1rem;">
+        <input type="text" name="search" value="{{ search or '' }}" 
+               class="form-control" placeholder="Search users..." style="max-width: 300px;">
+        <button type="submit" class="btn">Search</button>
+    </form>
+    
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>
+                    {% if u.is_banned %}
+                        <span class="badge" style="background-color: var(--danger);">Banned</span>
+                    {% else %}
+                        <span class="badge badge-success">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u.is_superadmin %}
+                        <span class="badge" style="background-color: #8957e5;">Superadmin</span>
+                    {% elif u.is_admin %}
+                        <span class="badge" style="background-color: var(--accent);">Admin</span>
+                    {% elif u.is_premium_active %}
+                        <span class="badge badge-premium">Premium</span>
+                    {% else %}
+                        <span class="badge badge-free">Free</span>
+                    {% endif %}
+                </td>
+                <td>{{ u.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <div class="flex gap-2">
+                        {% if not u.is_superadmin %}
+                            {% if u.is_banned %}
+                                <form method="post" action="/admin/users/{{ u.id }}/unban" style="display: inline;">
+                                    <button type="submit" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                                        Unban
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="/admin/users/{{ u.id }}/ban" style="display: inline;">
+                                    <input type="hidden" name="reason" value="Administrative action">
+                                    <button type="submit" class="btn btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                                        Ban
+                                    </button>
+                                </form>
+                            {% endif %}
+                            
+                            {% if u.is_premium_active %}
+                                <form method="post" action="/admin/users/{{ u.id }}/revoke-premium" style="display: inline;">
+                                    <button type="submit" class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                                        Revoke Premium
+                                    </button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="/admin/users/{{ u.id }}/grant-premium" style="display: inline;">
+                                    <input type="hidden" name="days" value="30">
+                                    <button type="submit" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.85rem;">
+                                        Grant Premium
+                                    </button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    <div class="flex gap-2" style="justify-content: center; margin-top: 1rem;">
+        {% if page > 1 %}
+            <a href="/admin/users?page={{ page - 1 }}{% if search %}&search={{ search }}{% endif %}" class="btn">
+                &larr; Previous
+            </a>
+        {% endif %}
+        <span style="padding: 0.6rem 1.2rem; color: var(--text-secondary);">
+            Page {{ page }}
+        </span>
+        {% if users|length == 50 %}
+            <a href="/admin/users?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}" class="btn">
+                Next &rarr;
+            </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - TorStream{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto;">
+    <div class="card">
+        <div class="card-header">
+            <h1 class="card-title">Contact Us</h1>
+        </div>
+        <div style="padding: 2rem;">
+            {% if success %}
+                <div class="alert alert-success" style="padding: 1rem; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 4px; color: #155724; margin-bottom: 1.5rem;">
+                    <strong>Success!</strong> {{ success }}
+                </div>
+            {% endif %}
+
+            {% if error %}
+                <div class="alert alert-danger" style="padding: 1rem; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 4px; color: #721c24; margin-bottom: 1.5rem;">
+                    <strong>Error:</strong> {{ error }}
+                </div>
+            {% endif %}
+
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+                Use this form to report issues or provide feedback. We aim to respond within 48 hours.
+                For privacy reasons, we do not provide email support.
+            </p>
+
+            {% if not rate_limited %}
+                <form method="post" action="/contact" id="contactForm">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="name" style="display: block; margin-bottom: 0.5rem;">Name (optional)</label>
+                        <input type="text" id="name" name="name" class="form-input" 
+                               style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="message" style="display: block; margin-bottom: 0.5rem;">Message *</label>
+                        <textarea id="message" name="message" rows="5" required
+                                  style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);"
+                                  minlength="10" maxlength="5000" placeholder="Enter your message here (10-5000 characters)"></textarea>
+                        <small style="color: var(--text-secondary);">Minimum 10 characters, maximum 5000 characters</small>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="display: block; margin-bottom: 0.5rem;">CAPTCHA *</label>
+                        <div style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <img id="captcha-image" src="" alt="captcha" style="border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 250px; height: auto;">
+                                <input type="hidden" id="captcha-token" name="captcha_token">
+                            </div>
+                            <button type="button" onclick="refreshCaptcha()" style="padding: 0.5rem 1rem; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; height: fit-content;">
+                                Refresh
+                            </button>
+                        </div>
+                        <input type="text" name="captcha_code" id="captcha" required
+                               style="width: 100%; padding: 0.5rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary);"
+                               placeholder="Enter the code above" autocomplete="off">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem;">
+                        Send Message
+                    </button>
+                </form>
+            {% else %}
+                <div class="alert alert-warning" style="padding: 1.5rem; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; color: #856404; text-align: center;">
+                    <strong>Rate Limited</strong><br>
+                    You can only submit one message per 3 days. Please try again later.
+                </div>
+            {% endif %}
+
+            <p style="color: var(--text-secondary); text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                Note: This is an anonymous service. No email will be sent - your message is stored securely and reviewed by admins.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadCaptcha() {
+    try {
+        const response = await fetch('/api/captcha');
+        const data = await response.json();
+        
+        if (data.image) {
+            document.getElementById('captcha-image').src = data.image;
+            document.getElementById('captcha-token').value = data.token;
+            document.getElementById('captcha').value = '';
+            document.getElementById('captcha').focus();
+        } else if (data.problem) {
+            // Fallback to math captcha
+            document.getElementById('captcha-image').src = 'data:text/plain;base64,' + btoa(data.problem);
+            document.getElementById('captcha-token').value = data.token;
+            document.getElementById('captcha').placeholder = 'Enter the answer (e.g., 5)';
+        }
+    } catch (error) {
+        console.error('Failed to load captcha:', error);
+        alert('Failed to load CAPTCHA. Please refresh the page.');
+    }
+}
+
+async function refreshCaptcha() {
+    await loadCaptcha();
+}
+
+// Load captcha on page load
+window.addEventListener('DOMContentLoaded', function() {
+    loadCaptcha();
+});
+
+// Add token to form submission
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    const token = document.getElementById('captcha-token').value;
+    if (!token) {
+        e.preventDefault();
+        alert('CAPTCHA not loaded. Please refresh and try again.');
+    }
+});
+</script>
+{% endblock %}
